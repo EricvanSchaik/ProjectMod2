@@ -3,7 +3,6 @@ package Server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import Client.ClientPeer;
 import Game.*;
 
 import java.util.*;
