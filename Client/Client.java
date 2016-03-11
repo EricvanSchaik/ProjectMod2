@@ -8,8 +8,9 @@ import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.*;
 
-public class Client extends Thread {
+public class Client extends Observable implements Runnable {
 	
 	private Socket socket;
 	private BufferedReader in;
@@ -17,6 +18,8 @@ public class Client extends Thread {
 	private View view;
 	private static final String USAGE
         = "usage: java week7.cmdline.Client <name> <address> <port>";
+	private String input;
+	public boolean isItsTurn = false;
     
     public Client (Socket socket) throws IOException {
     	this.socket = socket;
@@ -27,7 +30,7 @@ public class Client extends Thread {
     
     /** Starts a Client application. */
     public static void main(String[] args) {
-		if (args.length != 2) {
+		if (args.length != 2) { 
 			System.out.println(USAGE);
 			System.exit(0);
 		}
@@ -49,6 +52,7 @@ public class Client extends Thread {
 			Socket sock = new Socket(addr, port);
 			Client client = new Client(sock);
 			client.run();
+			client.handleTerminalInput();
 		}
 		catch (IOException e) {
 			e.printStackTrace();
@@ -57,8 +61,39 @@ public class Client extends Thread {
 	}
     
     public void run() {
-    	
+    	try {
+    		while ((input = in.readLine()) != null) {
+    			notifyObservers(input);
+    		}
+    	}
+    	catch (IOException e) {
+    		System.out.println(e.getMessage());
+    	}
     }
+    
+    public void handleTerminalInput() throws IOException {
+    	view.handleTerminalInput();
+//    	Scanner scanin = new Scanner(System.in);
+//    	String input;
+//    	while (!socket.isClosed()) {
+//			if (scanin.hasNextLine()) {
+//				if ((input = scanin.nextLine()).equals("exit")) {
+//					socket.close();
+//				}
+//				else {
+//					out.write(input + "\n");
+//					out.flush();
+//				}
+//			}
+//		}
+//    	scanin.close();
+    }
+    
+    public Socket getSocket() {
+    	return socket;
+    }
+    
+    
     
     
     /*public static void main(String[] args) {
