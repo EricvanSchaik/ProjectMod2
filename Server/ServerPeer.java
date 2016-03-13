@@ -16,7 +16,7 @@ public class ServerPeer extends Observable implements Runnable {
     protected BufferedReader in;
     protected BufferedWriter out;
     private Server server;
-    private boolean connected;
+    private boolean connected = false;
     public Game game;
     private String[] commands = {"join", "hello", "place", "trade"};
     private List<String> commandslist = Arrays.asList(commands);
@@ -37,8 +37,10 @@ public class ServerPeer extends Observable implements Runnable {
     	while (server.isRunning) {
     		try {
     			input = in.readLine();
+    			System.out.println("Client sent " + input);
     			String[] command = input.split(" ",2);
     			if (commandslist.contains(command[0])) {
+    				System.out.println("Executing command " + command[0]);
     				executeCommand(command[0],command[1]);
     			}
     			else {
@@ -67,7 +69,7 @@ public class ServerPeer extends Observable implements Runnable {
 				write("error 2");
 			}
 			else {
-				write("Hello from the other side");
+				write("hello from the other side");
 				setName(specs);
 				connected = true;
 			}
@@ -128,7 +130,8 @@ public class ServerPeer extends Observable implements Runnable {
     
     public void write(String message) {
     	try {
-    		out.write(message + "/n");
+    		System.out.println("Sending " + message);
+    		out.write(message + "\n");
     		out.flush();
     	}
     	catch (IOException e) {

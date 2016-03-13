@@ -13,7 +13,7 @@ public class TUIView extends View implements Observer {
 		this.client = client;
 		this.socket = client.getSocket();
 	}
-
+	
 	public void handleTerminalInput() throws IOException {
 		Scanner scanin = new Scanner(System.in);
     	String input;
@@ -27,7 +27,8 @@ public class TUIView extends View implements Observer {
 				if (strings[0].equals("exit")) {
 					socket.close();
 				}
-				else if ((strings[0].equals("join") && !client.isInGame) || (strings[0].equals("hello") && !client.hasLoggedIn) || ((strings[0].equals("place") || strings[0].equals("trade")) && client.isItsTurn)) {
+				if ((strings[0].equals("join") && !client.isInGame) || (strings[0].equals("hello") && !client.hasLoggedIn) || ((strings[0].equals("place") || strings[0].equals("trade")) && client.isItsTurn)) {
+					System.out.println("Message is being sent...");
 					client.write(input);
 					if (strings[0].equals("place") || strings[0].equals("trade")) {
 						client.isItsTurn = false;
@@ -42,7 +43,7 @@ public class TUIView extends View implements Observer {
 		if (arg instanceof String) {
 			System.out.println(arg);
 			String[] strings = ((String) arg).split(" ");
-			if (arg.equals("Hello from the other side")) {
+			if (arg.equals("hello from the other side")) {
 				client.hasLoggedIn = true;
 			}
 			if (strings[0].equals("turn")) {

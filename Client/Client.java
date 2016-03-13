@@ -16,8 +16,8 @@ public class Client extends Observable implements Runnable {
 	private BufferedReader in;
 	private BufferedWriter out;
 	private View view;
-	private static final String USAGE = "usage: java week7.cmdline.Client <name> <address> <port>";
 	private String input;
+	private String inputfromserver;
 	public boolean isItsTurn = false;
 	public boolean isInGame = false;
 	public boolean hasLoggedIn = false;
@@ -28,12 +28,13 @@ public class Client extends Observable implements Runnable {
 		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 		this.view = new TUIView(this);
+		addObserver(view);
 	}
 
 	/** Starts a Client application. */
 	public static void main(String[] args) {
 		if (args.length != 2) {
-			System.out.println(USAGE);
+			System.out.println("Please enter the IP-address and port");
 			System.exit(0);
 		}
 		InetAddress addr = null;
@@ -50,8 +51,10 @@ public class Client extends Observable implements Runnable {
 		}
 		try {
 			Socket sock = new Socket(addr, port);
+			System.out.println("Connected to server");
 			Client client = new Client(sock);
-			client.run();
+			Thread clientthread = new Thread(client);
+			clientthread.start();
 			client.handleTerminalInput();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -61,8 +64,8 @@ public class Client extends Observable implements Runnable {
 
 	public void run() {
 		try {
-			while ((input = in.readLine()) != null) {
-				notifyObservers(input);
+			while ((inputfromserver = in.readLine()) != null) {
+				notifyObservers(inputfromserver);
 			}
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
@@ -71,7 +74,7 @@ public class Client extends Observable implements Runnable {
 	
 	public void write(String text) {
 		try {
-			out.write(text);
+			out.write(text + "\n");
 			out.flush();
 		}
 		catch (IOException e) {

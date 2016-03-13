@@ -42,6 +42,7 @@ public class Server extends Thread {
     	while (isRunning) {
     		try {
     			Socket peersock = servsock.accept();
+    			System.out.println("Client connected");
     			ServerPeer serverpeer = new ServerPeer(peersock,this);
     			serverpeers.add(serverpeer);
     			serverpeer.run();
