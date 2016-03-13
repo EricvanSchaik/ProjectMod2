@@ -99,6 +99,15 @@ public class Game extends Thread implements Observer {
 		return spelers;
 	}
 	
+	public String spelersToString() {
+		String spelersToString = null;
+		for (ServerPeer s: spelers) {
+			spelersToString = spelersToString + "\n" +  s.toString();
+		}
+		
+		return spelersToString;
+	}
+	
 	/**
 	 * Returns the player whose turn it is.
 	 * @return the player who can make a move.

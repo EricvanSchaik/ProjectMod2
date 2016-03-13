@@ -70,6 +70,8 @@ public class ServerPeer extends Observable implements Runnable {
 			}
 			else {
 				write("hello from the other side");
+				write("joinlobby " + game.spelersToString());
+				game.sendAllPlayers("joinlobby " + specs);
 				setName(specs);
 				connected = true;
 			}

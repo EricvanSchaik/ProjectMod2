@@ -65,6 +65,7 @@ public class Client extends Observable implements Runnable {
 	public void run() {
 		try {
 			while ((inputfromserver = in.readLine()) != null) {
+				setChanged();
 				notifyObservers(inputfromserver);
 			}
 		} catch (IOException e) {
