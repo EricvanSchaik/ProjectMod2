@@ -116,6 +116,7 @@ public class ServerPeer extends Observable implements Runnable {
     		List<ServerPeer> newlist = new ArrayList<ServerPeer>();
     		newlist.add(this);
     		Game newGame = new Game(newlist, gamesize, this.server);
+    		setGame(newGame);
     		server.waiting.put(newGame, newlist);
     		joined = true;
     	}
@@ -169,11 +170,11 @@ public class ServerPeer extends Observable implements Runnable {
 		stenen.remove(steen);
 	}
 	
-	public void determineMove(String command, String specs) {
+	public synchronized void determineMove(String command, String specs) {
 		move = new String[2];
 		move[0] = command;
 		move[1] = specs;
-		notify();
+		game.notify();
 	}
 	
 	public void setGame(Game game) {

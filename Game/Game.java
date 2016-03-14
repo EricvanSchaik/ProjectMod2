@@ -54,7 +54,7 @@ public class Game extends Thread implements Observer {
 	/**
 	 * Starts the game if being called. Gets called by the last player to join. First gives the players random cubes, then keeps giving turns, until one of the players is out of cubes.
 	 */
-	public void run() {
+	public synchronized void run() {
 		for (ServerPeer p: spelers) {
 			for (int i = 0; i < 6; i++) {
 				Steen s = zak.get((int)Math.random()*zak.size());
@@ -64,10 +64,15 @@ public class Game extends Thread implements Observer {
 		}
 		currentPlayer = spelers.get(0);
 		while (!eindeSpel) {
-			while (!hasDecided) {
-				sendAllPlayers("turn " + currentPlayer.getName());
-				sendAllPlayers(board.toString());
-				hasDecided = currentPlayer.makeMove();
+			sendAllPlayers("turn " + currentPlayer.getName());
+			sendAllPlayers(board.toString());
+			if (!hasDecided) {
+				try {
+					wait();
+				}
+				catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 			currentPlayer = spelers.get((spelers.indexOf(currentPlayer) + 1)%spelers.size());
 		}
@@ -100,7 +105,7 @@ public class Game extends Thread implements Observer {
 	}
 	
 	public String spelersToString() {
-		String spelersToString = null;
+		String spelersToString = " ";
 		for (ServerPeer s: spelers) {
 			spelersToString = spelersToString + "\n" +  s.toString();
 		}

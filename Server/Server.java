@@ -45,7 +45,8 @@ public class Server extends Thread {
     			System.out.println("Client connected");
     			ServerPeer serverpeer = new ServerPeer(peersock,this);
     			serverpeers.add(serverpeer);
-    			serverpeer.run();
+    			Thread serverpeerthread = new Thread(serverpeer);
+    			serverpeerthread.run();
     		}
     		catch (IOException e) {
     			e.printStackTrace();
