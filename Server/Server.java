@@ -12,7 +12,7 @@ public class Server extends Thread {
     private static final String USAGE
         = "usage: " + Server.class.getName() + "<port>";
     protected ServerSocket servsock;
-    public boolean isRunning = true;
+    public boolean isRunning;
     private List<ServerPeer> serverpeers;
     public Map<Game, List<ServerPeer>> waiting;
     public Map<Game, List<ServerPeer>> running;
@@ -36,6 +36,7 @@ public class Server extends Thread {
     public Server (ServerSocket servsock) {
     	this.servsock = servsock;
     	serverpeers = new ArrayList<ServerPeer>();
+    	isRunning = true;
     }
     
     public void run() {
@@ -46,7 +47,7 @@ public class Server extends Thread {
     			ServerPeer serverpeer = new ServerPeer(peersock,this);
     			serverpeers.add(serverpeer);
     			Thread serverpeerthread = new Thread(serverpeer);
-    			serverpeerthread.run();
+    			serverpeerthread.start();
     		}
     		catch (IOException e) {
     			e.printStackTrace();

@@ -107,7 +107,7 @@ public class Game extends Thread implements Observer {
 	public String spelersToString() {
 		String spelersToString = " ";
 		for (ServerPeer s: spelers) {
-			spelersToString = spelersToString + "\n" +  s.toString();
+			spelersToString = spelersToString + "\n" +  s.getName();
 		}
 		
 		return spelersToString;

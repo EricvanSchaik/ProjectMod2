@@ -70,8 +70,6 @@ public class ServerPeer extends Observable implements Runnable {
 			}
 			else {
 				write("hello from the other side");
-				write("joinlobby " + game.spelersToString());
-				game.sendAllPlayers("joinlobby " + specs);
 				setName(specs);
 				connected = true;
 			}
@@ -97,15 +95,18 @@ public class ServerPeer extends Observable implements Runnable {
     
     public void join(int gamesize) {
     	boolean exists = false;
+    	Game posgame = null;
     	for (Map.Entry<Game, List<ServerPeer>> e: server.waiting.entrySet()) {
     		if (e.getKey().gameSize() == gamesize) {
     			exists = true;
-    			Game game = e.getKey();
+    			posgame = e.getKey();
     		}
     	}
     	if (exists) {
-    		game.addSpeler(this);
+    		posgame.addSpeler(this);
     		setGame(game);
+    		write("joinlobby " + game.spelersToString());
+			game.sendAllPlayers("joinlobby " + name);
     		joined = true;
     		if (game.isRunning) {
     			server.waiting.remove(game);
