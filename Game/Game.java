@@ -3,7 +3,6 @@ package Game;
 import java.util.*;
 
 import Server.*;
-import Game.*;
 
 /**
  * Overall model class to represent the Qwirkle game, consisting of players, a bag of cubes, a board and a scoreboard.
@@ -15,11 +14,10 @@ public class Game extends Thread {
 	private List<Steen> zak;
 	private List<ServerPeer> spelers;
 	private ServerPeer currentPlayer;
-	private Server server;
 	private Board board;
 	private Map<ServerPeer, Integer> scoreboard;
 	private int gamesize;
-	public boolean isRunning;
+	private boolean isRunning;
 	private boolean eindeSpel = false;
 	
 	
@@ -34,7 +32,6 @@ public class Game extends Thread {
 	public Game(List<ServerPeer> spelers, int gamesize, Server server) {
 		this.gamesize = gamesize;
 		this.spelers = spelers;
-		this.server = server;
 		this.board = new Board();
 		this.zak = new ArrayList<Steen>(108);
 		for (int i=0; i<3; i++) {
@@ -90,7 +87,7 @@ public class Game extends Thread {
 	}
 	
 	/**
-	 * Returns a Steen from the bag of cubes, and removes it from te bag.
+	 * Returns a Steen from the bag of cubes, and removes it from the bag.
 	 * @return a Steen from the bag of cubes.
 	 */
 	public Steen getSteen() {
@@ -105,7 +102,11 @@ public class Game extends Thread {
 	public boolean legeZak() {
 		return zak.isEmpty();
 	}
-
+	
+	public boolean isRunning() {
+		return isRunning;
+	}
+	
 	/**
 	 * Determines the points to be added to the current player when the method place is being called upon.
 	 * @param nieuwestenen: the map of cubes and points where they need to be placed.
@@ -211,6 +212,7 @@ public class Game extends Thread {
 		while (!eindeSpel) {
 			sendAllPlayers("turn " + currentPlayer.getName());
 			sendAllPlayers(board.toString());
+			sendScoreToAll();
 			try {
 				wait();
 			}
@@ -220,6 +222,12 @@ public class Game extends Thread {
 			currentPlayer = spelers.get((spelers.indexOf(currentPlayer) + 1)%spelers.size());
 		}
 		endGameMessage();
+		try {
+			join();
+		}
+		catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 	/**
 	 * Sends a message to all players participating in this game.
@@ -274,29 +282,7 @@ public class Game extends Thread {
 		eindeSpel = true;
 	}
 	
-	
-	/**
-	 * When the game ends, this method is being called to inform the players.
-	 */
-	public void endGameMessage() {
-		Set<Map.Entry<ServerPeer, Integer>> entryset = scoreboard.entrySet();
-		Map.Entry<ServerPeer, Integer> highest = null;
-		for (Map.Entry<ServerPeer, Integer> score: entryset) {
-			if (highest.getValue() < score.getValue()) {
-				highest = score;
-			}
-		}
-		ServerPeer winner = highest.getKey();
-		if (winner instanceof ServerPeer) {
-			((ServerPeer) winner).write("Congratulations! You've won!");	
-		}
-		for (ServerPeer s: spelers) {
-			if (s instanceof ServerPeer) {
-				((ServerPeer) s).write("You've lost :( The winner is" + winner.getName());
-			}
-		}
-	}
-	
+
 	/**
 	 * The trade method as alternative to the players to the place method. 
 	 * @param stenen: List of values of type Steen, to be placed in the bag.
@@ -317,11 +303,38 @@ public class Game extends Thread {
 		return teruggave;
 	}
 	
+	/**
+	 * When the game ends, this method is being called to inform the players.
+	 */
+	private void endGameMessage() {
+		Set<Map.Entry<ServerPeer, Integer>> entryset = scoreboard.entrySet();
+		Map.Entry<ServerPeer, Integer> highest = null;
+		for (Map.Entry<ServerPeer, Integer> score: entryset) {
+			if (highest.getValue() < score.getValue()) {
+				highest = score;
+			}
+		}
+		ServerPeer winner = highest.getKey();
+		if (winner instanceof ServerPeer) {
+			((ServerPeer) winner).write("Congratulations! You've won!");	
+		}
+		for (ServerPeer s: spelers) {
+			if (s instanceof ServerPeer) {
+				((ServerPeer) s).write("You've lost :( The winner is" + winner.getName());
+			}
+		}
+	}
+	
+	private void sendScoreToAll() {
+		for (ServerPeer s: spelers) {
+			
+		}
+	}
 	
 	/**
 	 * Resets the game by resetting the scoreboard (given every Player 0 points) and by removing the Stenen owned by the players.
 	 */
-	public void reset() {
+	private void reset() {
 		for (ServerPeer s: spelers) {
 			s.reset();	
 		}

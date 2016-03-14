@@ -14,8 +14,8 @@ public class Server extends Thread {
     protected ServerSocket servsock;
     public boolean isRunning;
     private List<ServerPeer> serverpeers;
-    public Map<Game, List<ServerPeer>> waiting = new HashMap<Game, List<ServerPeer>>();
-    public Map<Game, List<ServerPeer>> running = new HashMap<Game, List<ServerPeer>>();
+    private Map<Game, List<ServerPeer>> waiting = new HashMap<Game, List<ServerPeer>>();
+    private Map<Game, List<ServerPeer>> running = new HashMap<Game, List<ServerPeer>>();
     
     public static void main(String[] args) {
     	if (args.length != 1) {
@@ -64,7 +64,13 @@ public class Server extends Thread {
     	}
     }
     
+    public Map<Game, List<ServerPeer>> waitingGames() {
+    	return waiting;
+    }
     
+    public Map<Game, List<ServerPeer>> runningGames() {
+    	return running;
+    }
     
     public void shutDown() {
     	try {

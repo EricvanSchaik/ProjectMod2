@@ -75,7 +75,7 @@ public class ServerPeer implements Runnable {
 				join(Integer.parseInt(specs));
 			}
 		} else if (command.equals("place") || command.equals("trade")) {
-			if (!game.isRunning || !this.equals(game.getCurrentPlayer())) {
+			if (!game.isRunning() || !this.equals(game.getCurrentPlayer())) {
 				write("error 0");
 			} else {
 				determineMove(command, specs);
@@ -87,8 +87,8 @@ public class ServerPeer implements Runnable {
 	public void join(int gamesize) {
 		boolean exists = false;
 		Game posgame = null;
-		if (server.waiting != null) {
-			for (Map.Entry<Game, List<ServerPeer>> e : server.waiting.entrySet()) {
+		if (server.waitingGames() != null) {
+			for (Map.Entry<Game, List<ServerPeer>> e : server.waitingGames().entrySet()) {
 				if (e.getKey().gameSize() == gamesize) {
 					exists = true;
 					posgame = e.getKey();
@@ -102,9 +102,9 @@ public class ServerPeer implements Runnable {
 			write("joinlobby: " + posgame.spelersToString());
 			posgame.sendAllPlayers("joinlobby " + name);
 			joined = true;
-			if (game.isRunning) {
-				server.waiting.remove(game);
-				server.running.put(game, game.getSpelers());
+			if (game.isRunning()) {
+				server.waitingGames().remove(game);
+				server.runningGames().put(game, game.getSpelers());
 			}
 		} if (!exists) {
 			write("Making new lobby, waiting for players...");
@@ -112,7 +112,7 @@ public class ServerPeer implements Runnable {
 			newlist.add(this);
 			Game newGame = new Game(newlist, gamesize, this.server);
 			setGame(newGame);
-			server.waiting.put(newGame, newlist);
+			server.waitingGames().put(newGame, newlist);
 			joined = true;
 		}
 	}
