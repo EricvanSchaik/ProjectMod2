@@ -10,7 +10,7 @@ import Game.*;
  * @author Eric van Schaik and Birte Brunt.
  *
  */
-public class Game extends Thread implements Observer {
+public class Game extends Thread {
 	
 	private List<Steen> zak;
 	private List<ServerPeer> spelers;
@@ -20,8 +20,11 @@ public class Game extends Thread implements Observer {
 	private Map<ServerPeer, Integer> scoreboard;
 	private int gamesize;
 	public boolean isRunning;
-	private boolean hasDecided = false;
 	private boolean eindeSpel = false;
+	
+	
+	//--------------------Constructor--------------------
+	
 	
 	//@ requires spelers.size() >= 1 && spelers.size() <= 4;
 	/**
@@ -51,42 +54,7 @@ public class Game extends Thread implements Observer {
 		reset();
 	}
 	
-	/**
-	 * Starts the game if being called. Gets called by the last player to join. First gives the players random cubes, then keeps giving turns, until one of the players is out of cubes.
-	 */
-	public synchronized void run() {
-		for (ServerPeer p: spelers) {
-			for (int i = 0; i < 6; i++) {
-				Steen s = zak.get((int)Math.random()*zak.size());
-				p.addSteen(s);
-				zak.remove(s);
-			}
-		}
-		currentPlayer = spelers.get(0);
-		while (!eindeSpel) {
-			sendAllPlayers("turn " + currentPlayer.getName());
-			sendAllPlayers(board.toString());
-			if (!hasDecided) {
-				try {
-					wait();
-				}
-				catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-			currentPlayer = spelers.get((spelers.indexOf(currentPlayer) + 1)%spelers.size());
-		}
-		endGameMessage();
-	}
-	/**
-	 * Sends a message to all players participating in this game.
-	 * @param message: the message to be send.
-	 */
-	public void sendAllPlayers(String message) {
-		for (ServerPeer s: spelers) {
-			s.write(message);
-		}
-	}
+	//--------------------Queries--------------------
 	
 	/**
 	 * Gives the amount of players needed to start the game.
@@ -107,51 +75,18 @@ public class Game extends Thread implements Observer {
 	public String spelersToString() {
 		String spelersToString = " ";
 		for (ServerPeer s: spelers) {
-			spelersToString = spelersToString + "\n" +  s.getName();
+			spelersToString = s.getName() + ", " + spelersToString;
 		}
 		
 		return spelersToString;
 	}
-	
+
 	/**
 	 * Returns the player whose turn it is.
 	 * @return the player who can make a move.
 	 */
 	public ServerPeer getCurrentPlayer() {
 		return currentPlayer;
-	}
-	
-	/**
-	 * Adds a player to the list of players of this game. Gets called if a ServerPeer calls join.
-	 * @param speler: the player who wants to join.
-	 */
-	public void addSpeler(ServerPeer speler) {
-		spelers.add(speler);
-		speler.addObserver(this);
-		if (spelers.size() == gamesize) {
-			isRunning = true;
-			run();
-		}
-	}
-	
-	/**
-	 * Places a given list of Steen on a given field, calls the similar method in Board and adds points to the current player.
-	 * @param steen: Steen to be placed.
-	 * @param vakje: Field on which the Steen needs to be placed.
-	 * @return true if the Steen has been placed, false if it is not.
-	 */
-	public boolean place(Map<Steen, int[]> steentjes) {
-		boolean hasBeenPlaced = true;
-		for (Map.Entry<Steen, int[]> e: steentjes.entrySet()) {
-			boolean placed = board.place(e.getKey(), e.getValue());
-			if (!placed) {
-				hasBeenPlaced = false;
-			}
-		}
-		Integer oldScore = scoreboard.get(currentPlayer);
-		Integer newScore = new Integer(oldScore.intValue()+calculatePoints(steentjes));
-		scoreboard.put(currentPlayer, newScore);
-		return hasBeenPlaced;
 	}
 	
 	/**
@@ -166,11 +101,11 @@ public class Game extends Thread implements Observer {
 		}
 		return steen;
 	}
-	
+
 	public boolean legeZak() {
 		return zak.isEmpty();
 	}
-	
+
 	/**
 	 * Determines the points to be added to the current player when the method place is being called upon.
 	 * @param nieuwestenen: the map of cubes and points where they need to be placed.
@@ -258,6 +193,76 @@ public class Game extends Thread implements Observer {
 		}
 		return score;
 	}
+	
+	//--------------------Commands--------------------
+	
+	/**
+	 * Starts the game if being called. Gets called by the last player to join. First gives the players random cubes, then keeps giving turns, until one of the players is out of cubes.
+	 */
+	public synchronized void run() {
+		for (ServerPeer p: spelers) {
+			for (int i = 0; i < 6; i++) {
+				Steen s = zak.get((int)Math.random()*zak.size());
+				p.addSteen(s);
+				zak.remove(s);
+			}
+		}
+		currentPlayer = spelers.get(0);
+		while (!eindeSpel) {
+			sendAllPlayers("turn " + currentPlayer.getName());
+			sendAllPlayers(board.toString());
+			try {
+				wait();
+			}
+			catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			currentPlayer = spelers.get((spelers.indexOf(currentPlayer) + 1)%spelers.size());
+		}
+		endGameMessage();
+	}
+	/**
+	 * Sends a message to all players participating in this game.
+	 * @param message: the message to be send.
+	 */
+	public void sendAllPlayers(String message) {
+		for (ServerPeer s: spelers) {
+			s.write(message);
+		}
+	}
+
+	/**
+	 * Adds a player to the list of players of this game. Gets called if a ServerPeer calls join.
+	 * @param speler: the player who wants to join.
+	 */
+	public void addSpeler(ServerPeer speler) {
+		spelers.add(speler);
+		if (spelers.size() == gamesize) {
+			isRunning = true;
+			start();
+		}
+	}
+	
+	/**
+	 * Places a given list of Steen on a given field, calls the similar method in Board and adds points to the current player.
+	 * @param steen: Steen to be placed.
+	 * @param vakje: Field on which the Steen needs to be placed.
+	 * @return true if the Steen has been placed, false if it is not.
+	 */
+	public boolean place(Map<Steen, int[]> steentjes) {
+		boolean hasBeenPlaced = true;
+		for (Map.Entry<Steen, int[]> e: steentjes.entrySet()) {
+			boolean placed = board.place(e.getKey(), e.getValue());
+			if (!placed) {
+				hasBeenPlaced = false;
+			}
+		}
+		Integer oldScore = scoreboard.get(currentPlayer);
+		Integer newScore = new Integer(oldScore.intValue()+calculatePoints(steentjes));
+		scoreboard.put(currentPlayer, newScore);
+		return hasBeenPlaced;
+	}
+
 	/**
 	 * The method that is to be called by a player when he has no stones left.
 	 * @param speler: the player that calls the method.
@@ -327,16 +332,4 @@ public class Game extends Thread implements Observer {
 		eindeSpel = false;
 	}
 
-	/**
-	 * This method is called when a player has made his move (by the observable pattern).
-	 */
-	public void update(Observable o, Object arg) {
-		if (o.equals(currentPlayer)) {
-			hasDecided = true;
-		}
-		else {
-			((ServerPeer) o).write("error 0");
-		}
-		
-	}
 }
