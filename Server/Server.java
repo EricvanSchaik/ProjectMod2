@@ -82,5 +82,9 @@ public class Server extends Thread {
     	}
     }
     
-
+    public List<ServerPeer> getServerPeers() {
+    	return serverpeers;
+    }
+    
+    
 }

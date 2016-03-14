@@ -44,4 +44,8 @@ public class Steen {
 		}
 	}
 	
+	public String toString() {
+		return ("( " + Integer.toString(vorm) + ", " + Integer.toString(kleur) + " )");
+	}
+	
 }

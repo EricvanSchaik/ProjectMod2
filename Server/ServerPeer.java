@@ -146,7 +146,7 @@ public class ServerPeer implements Runnable {
 	}
 
 	public boolean isValidName(String name) {
-		if (commandslist.contains(name) || name.contains(" ")) {
+		if (commandslist.contains(name) || name.contains(" ") || server.getServerPeers().contains(name)) {
 			return false;
 		} else {
 			return true;
@@ -249,4 +249,14 @@ public class ServerPeer implements Runnable {
 		}
 		return movemade;
 	}
+	
+	public String stenenToString() {
+		String stenenToString = null;
+		for (Steen s: stenen) {
+			stenenToString = s.toString() + ", " + stenenToString;
+		}
+		return stenenToString;
+	}
+	
+	
 }

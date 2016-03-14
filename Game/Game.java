@@ -212,7 +212,7 @@ public class Game extends Thread {
 		while (!eindeSpel) {
 			sendAllPlayers("turn " + currentPlayer.getName());
 			sendAllPlayers(board.toString());
-			sendScoreToAll();
+			sendStenenToAll();
 			try {
 				wait();
 			}
@@ -325,9 +325,9 @@ public class Game extends Thread {
 		}
 	}
 	
-	private void sendScoreToAll() {
+	private void sendStenenToAll() {
 		for (ServerPeer s: spelers) {
-			
+			s.write("Your stones are " + s.stenenToString());
 		}
 	}
 	
