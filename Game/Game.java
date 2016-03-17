@@ -85,19 +85,6 @@ public class Game extends Thread {
 	public ServerPeer getCurrentPlayer() {
 		return currentPlayer;
 	}
-	
-	/**
-	 * Returns a Steen from the bag of cubes, and removes it from the bag.
-	 * @return a Steen from the bag of cubes.
-	 */
-	public Steen getSteen() {
-		Steen steen = null;
-		if (!zak.isEmpty()){
-			steen = zak.get((int)Math.random()*zak.size());
-			zak.remove(steen);
-		}
-		return steen;
-	}
 
 	public boolean legeZak() {
 		return zak.isEmpty();
@@ -105,6 +92,10 @@ public class Game extends Thread {
 	
 	public boolean isRunning() {
 		return isRunning;
+	}
+	
+	public String scoreboardToString() {
+		return null;
 	}
 	
 	/**
@@ -198,14 +189,26 @@ public class Game extends Thread {
 	//--------------------Commands--------------------
 	
 	/**
+	 * Returns a Steen from the bag of cubes, and removes it from the bag.
+	 * @return a Steen from the bag of cubes.
+	 */
+	public Steen getSteen() {
+		Steen steen = null;
+		if (!zak.isEmpty()){
+			steen = zak.get((int)(Math.random()*zak.size()));
+			zak.remove(steen);
+		}
+		return steen;
+	}
+
+	/**
 	 * Starts the game if being called. Gets called by the last player to join. First gives the players random cubes, then keeps giving turns, until one of the players is out of cubes.
 	 */
 	public synchronized void run() {
 		for (ServerPeer p: spelers) {
 			for (int i = 0; i < 6; i++) {
-				Steen s = zak.get((int)Math.random()*zak.size());
+				Steen s = getSteen();
 				p.addSteen(s);
-				zak.remove(s);
 			}
 		}
 		currentPlayer = spelers.get(0);
@@ -213,11 +216,13 @@ public class Game extends Thread {
 			sendAllPlayers("turn " + currentPlayer.getName());
 			sendAllPlayers(board.toString());
 			sendStenenToAll();
-			try {
-				wait();
-			}
-			catch (InterruptedException e) {
-				e.printStackTrace();
+			synchronized(currentPlayer) {
+				try {
+					currentPlayer.wait();
+				}
+				catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 			currentPlayer = spelers.get((spelers.indexOf(currentPlayer) + 1)%spelers.size());
 		}
@@ -258,17 +263,16 @@ public class Game extends Thread {
 	 * @return true if the Steen has been placed, false if it is not.
 	 */
 	public boolean place(Map<Steen, int[]> steentjes) {
-		boolean hasBeenPlaced = true;
-		for (Map.Entry<Steen, int[]> e: steentjes.entrySet()) {
-			boolean placed = board.place(e.getKey(), e.getValue());
-			if (!placed) {
-				hasBeenPlaced = false;
-			}
+		boolean placed = board.place(steentjes);
+		if (!placed) {
+			currentPlayer.write("error 0");
 		}
-		Integer oldScore = scoreboard.get(currentPlayer);
-		Integer newScore = new Integer(oldScore.intValue()+calculatePoints(steentjes));
-		scoreboard.put(currentPlayer, newScore);
-		return hasBeenPlaced;
+		else {
+			Integer oldScore = scoreboard.get(currentPlayer);
+			Integer newScore = new Integer(oldScore.intValue()+calculatePoints(steentjes));
+			scoreboard.put(currentPlayer, newScore);
+		}
+		return placed;
 	}
 
 	/**

@@ -23,6 +23,7 @@ public class ServerPeer implements Runnable {
 	private boolean joined;
 	private List<Steen> stenen;
 	private String[] move;
+	private boolean movesucceed = false;
 
 	public ServerPeer(Socket sockArg, Server server) throws IOException {
 		this.sock = sockArg;
@@ -43,7 +44,7 @@ public class ServerPeer implements Runnable {
 					System.out.println("Executing command " + command[0]);
 					executeCommand(command[0], command[1]);
 				} else {
-					write("error 0");
+					write("error 0, invalid command");
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -76,8 +77,9 @@ public class ServerPeer implements Runnable {
 			}
 		} else if (command.equals("place") || command.equals("trade")) {
 			if (!game.isRunning() || !this.equals(game.getCurrentPlayer())) {
-				write("error 0");
+				write("error 0, not your turn");
 			} else {
+				System.out.println("Current player determining its move");
 				determineMove(command, specs);
 			}
 		}
@@ -165,7 +167,13 @@ public class ServerPeer implements Runnable {
 		move = new String[2];
 		move[0] = command;
 		move[1] = specs;
-		game.notify();
+		System.out.println("Making move...");
+		makeMove();
+		if (movesucceed) {
+			System.out.println("Current player has made its move");
+			notify();
+		}
+		movesucceed = false;
 	}
 
 	public void setGame(Game game) {
@@ -194,21 +202,20 @@ public class ServerPeer implements Runnable {
 		return result;
 	}
 
-	public boolean makeMove() {
-		boolean movemade = false;
+	public void makeMove() {
 		if (game.getCurrentPlayer().equals(this)) {
 			if (move[0].equals("place")) {
 				Map<Steen, int[]> placingmap = new HashMap<Steen, int[]>();
-				String[] steenenplaats = move[1].split(" ");
-				if ((steenenplaats.length % 2) == 0) {
-					write("error 0");
+				String[] steenenplaatsen = move[1].split(" ");
+				if ((steenenplaatsen.length % 2) != 0) {
+					write("error 0, invalid move");
 				} else {
-					for (int i = 0; i < steenenplaats.length; i = i + 2) {
-						String[] steen = steenenplaats[i].split(",");
+					for (int i = 0; i < steenenplaatsen.length; i = i + 2) {
+						String[] steen = steenenplaatsen[i].split(",");
 						if (!(steen.length == 2)) {
-							write("error 0");
+							write("error 0, invalid stone");
 						} else {
-							String[] plaatss = steenenplaats[i + 1].split(",");
+							String[] plaatss = steenenplaatsen[i + 1].split(",");
 							int[] plaatsi = new int[2];
 							plaatsi[0] = Integer.parseInt(plaatss[0]);
 							plaatsi[1] = Integer.parseInt(plaatss[1]);
@@ -218,12 +225,14 @@ public class ServerPeer implements Runnable {
 								stenen.remove(getSteen(Integer.parseInt(steen[0]), Integer.parseInt(steen[1])));
 								stenen.add(game.getSteen());
 							} catch (InvalidArgumentException e) {
-								write("error 0");
+								write("error 0, stone not in your possession");
 							}
 						}
 					}
-					movemade = game.place(placingmap);
-
+					boolean isplaced = game.place(placingmap);
+					if (isplaced) {
+						movesucceed = true;
+					}
 				}
 			} else if (move[0].equals("trade")) {
 				List<Steen> tstenen = new ArrayList<Steen>();
@@ -233,25 +242,24 @@ public class ServerPeer implements Runnable {
 					try {
 						tstenen.add(getSteen(Integer.parseInt(ssteen[0]), Integer.parseInt(ssteen[1])));
 						stenen.remove(getSteen(Integer.parseInt(ssteen[0]), Integer.parseInt(ssteen[1])));
-					} catch (InvalidArgumentException e) {
+					}
+					catch (InvalidArgumentException e) {
 						write("error 0");
 					}
 
 				}
 				stenen.addAll(game.tradeStenen(tstenen));
-				movemade = true;
 			}
 			if (stenen.isEmpty()) {
 				game.noStonesLeft(this);
 			}
 		} else {
-			write("error 0");
+			write("error 0, checking if it goes wrong here");
 		}
-		return movemade;
 	}
 	
 	public String stenenToString() {
-		String stenenToString = null;
+		String stenenToString = "";
 		for (Steen s: stenen) {
 			stenenToString = s.toString() + ", " + stenenToString;
 		}

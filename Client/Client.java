@@ -30,7 +30,7 @@ public class Client extends Observable implements Runnable {
 		this.view = new TUIView(this);
 		addObserver(view);
 	}
-
+	
 	/** Starts a Client application. */
 	public static void main(String[] args) {
 		if (args.length != 2) {

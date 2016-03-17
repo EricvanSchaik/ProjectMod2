@@ -45,9 +45,11 @@ public class Board {
 	 * false if the Steen cannot be placed there.
 	 */
 	
-	public boolean place(Steen steen, int[] vakje) {
-		if (isValidMove(steen, vakje)) {
-			vakjes.put(steen, vakje);
+	public boolean place(Map<Steen, int[]> steentjes) {
+		if (isValidMove(steentjes)) {
+			for (Map.Entry<Steen, int[]> s: steentjes.entrySet()) {
+				vakjes.put(s.getKey(), s.getValue());
+			}
 			return true;
 		}
 		else {
@@ -102,18 +104,11 @@ public class Board {
 	 * @return true if the given Steen can be placed on the given field, false if not.
 	 */
 	
-	public boolean isValidMove(Steen steen, int[] vakje) {
-		int x = vakje[0];
-		int y = vakje[1];
-		if (vakjes.containsValue(vakje)) {
-			return false;
-		}
-		else if (vakjes.containsValue(getVakje((x-1), y)) || vakjes.containsValue(getVakje((x+1), y)) || vakjes.containsValue(getVakje(x, (y-1))) || vakjes.containsValue(getVakje(x, (y-1)))) {
-			return true;
-		}
-		else {
-			return false;
-		}
+	public boolean isValidMove(Map<Steen, int[]> steentjes) {
+		/*
+		 * Te implementeren door Birte
+		 */
+		return true;
 	}
 	
 	private int getMaxX() {
@@ -166,8 +161,7 @@ public class Board {
 	
 	public boolean isEmpty(int x, int y){
 		boolean empty = true;
-		Set<Map.Entry<Steen, int[]>> entryset = vakjes.entrySet();
-		for (Map.Entry<Steen, int[]> e: entryset){
+		for (Map.Entry<Steen, int[]> e: vakjes.entrySet()){
 			int mapx = e.getValue()[0];
 			int mapy = e.getValue()[1];
 			if (mapx==x && mapy==y){
