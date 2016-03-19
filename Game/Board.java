@@ -300,10 +300,11 @@ public class Board {
 							if (!nieuwcopy.isEmpty()) {return false;}
 						}
 					}
-					else {return false;}
-					return true;
+					else {return true;}
 				}
-				
+				else {
+					return false;
+				}
 				
 				// hier wordt naar de eerste steen gezocht
 				for (Map.Entry<Steen, int[]> e: nieuw.entrySet()){
