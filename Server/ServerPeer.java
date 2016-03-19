@@ -8,9 +8,9 @@ import java.io.OutputStreamWriter;
 import java.net.*;
 import java.util.*;
 import Game.*;
-
-public class ServerPeer implements Runnable {
-
+	
+public class ServerPeer implements Runnable, Player {
+	
 	protected String name;
 	protected Socket sock;
 	protected BufferedReader in;
@@ -24,16 +24,21 @@ public class ServerPeer implements Runnable {
 	private List<Steen> stenen;
 	private String[] move;
 	private boolean movesucceed = false;
-
-	public ServerPeer(Socket sockArg, Server server) throws IOException {
+	
+	public ServerPeer(Socket sockArg, Server server) {
 		this.sock = sockArg;
-		in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
-		out = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
 		this.server = server;
 		this.stenen = new ArrayList<Steen>();
 	}
-
+	
 	public void run() {
+		try {
+			in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+			out = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
 		String input = null;
 		while (server.isRunning) {
 			try {
@@ -57,7 +62,7 @@ public class ServerPeer implements Runnable {
 			e.printStackTrace();
 		}
 	}
-
+	
 	public void executeCommand(String command, String specs) {
 		if (command.equals("hello")) {
 			if (connected) {
@@ -70,7 +75,7 @@ public class ServerPeer implements Runnable {
 				connected = true;
 			}
 		} else if (command.equals("join")) {
-			if (joined || !(Integer.parseInt(specs) > 1 && Integer.parseInt(specs) < 5)) {
+			if (joined || !(Integer.parseInt(specs) > 1 && Integer.parseInt(specs) < 5) || (!connected)) {
 				write("error 0");
 			} else {
 				join(Integer.parseInt(specs));
@@ -90,7 +95,7 @@ public class ServerPeer implements Runnable {
 		boolean exists = false;
 		Game posgame = null;
 		if (server.waitingGames() != null) {
-			for (Map.Entry<Game, List<ServerPeer>> e : server.waitingGames().entrySet()) {
+			for (Map.Entry<Game, List<Player>> e : server.waitingGames().entrySet()) {
 				if (e.getKey().gameSize() == gamesize) {
 					exists = true;
 					posgame = e.getKey();
@@ -110,9 +115,9 @@ public class ServerPeer implements Runnable {
 			}
 		} if (!exists) {
 			write("Making new lobby, waiting for players...");
-			List<ServerPeer> newlist = new ArrayList<ServerPeer>();
+			List<Player> newlist = new ArrayList<Player>();
 			newlist.add(this);
-			Game newGame = new Game(newlist, gamesize, this.server);
+			Game newGame = new Game(newlist, gamesize);
 			setGame(newGame);
 			server.waitingGames().put(newGame, newlist);
 			joined = true;
@@ -167,7 +172,6 @@ public class ServerPeer implements Runnable {
 		move = new String[2];
 		move[0] = command;
 		move[1] = specs;
-		System.out.println("Making move...");
 		makeMove();
 		if (movesucceed) {
 			System.out.println("Current player has made its move");
@@ -215,6 +219,7 @@ public class ServerPeer implements Runnable {
 						if (!(steen.length == 2)) {
 							write("error 0, invalid stone");
 						} else {
+							System.out.println("Trying to place the tiles...");
 							String[] plaatss = steenenplaatsen[i + 1].split(",");
 							int[] plaatsi = new int[2];
 							plaatsi[0] = Integer.parseInt(plaatss[0]);
@@ -223,7 +228,7 @@ public class ServerPeer implements Runnable {
 								placingmap.put(getSteen(Integer.parseInt(steen[0]), Integer.parseInt(steen[1])),
 										plaatsi);
 								stenen.remove(getSteen(Integer.parseInt(steen[0]), Integer.parseInt(steen[1])));
-								stenen.add(game.getSteen());
+								stenen.add(game.takeSteen());
 							} catch (InvalidArgumentException e) {
 								write("error 0, stone not in your possession");
 							}
@@ -242,6 +247,7 @@ public class ServerPeer implements Runnable {
 					try {
 						tstenen.add(getSteen(Integer.parseInt(ssteen[0]), Integer.parseInt(ssteen[1])));
 						stenen.remove(getSteen(Integer.parseInt(ssteen[0]), Integer.parseInt(ssteen[1])));
+						movesucceed = true;
 					}
 					catch (InvalidArgumentException e) {
 						write("error 0");

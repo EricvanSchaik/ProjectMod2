@@ -13,9 +13,9 @@ public class Server extends Thread {
         = "usage: " + Server.class.getName() + "<port>";
     protected ServerSocket servsock;
     public boolean isRunning;
-    private List<ServerPeer> serverpeers;
-    private Map<Game, List<ServerPeer>> waiting = new HashMap<Game, List<ServerPeer>>();
-    private Map<Game, List<ServerPeer>> running = new HashMap<Game, List<ServerPeer>>();
+    private List<Player> serverpeers;
+    private Map<Game, List<Player>> waiting = new HashMap<Game, List<Player>>();
+    private Map<Game, List<Player>> running = new HashMap<Game, List<Player>>();
     
     public static void main(String[] args) {
     	if (args.length != 1) {
@@ -35,7 +35,7 @@ public class Server extends Thread {
     
     public Server (ServerSocket servsock) {
     	this.servsock = servsock;
-    	serverpeers = new ArrayList<ServerPeer>();
+    	serverpeers = new ArrayList<Player>();
     	isRunning = true;
     }
     
@@ -59,16 +59,16 @@ public class Server extends Thread {
     }
     
     public void sendAllClients(String message) {
-    	for (ServerPeer sp: serverpeers) {
+    	for (Player sp: serverpeers) {
     		sp.write(message);
     	}
     }
     
-    public Map<Game, List<ServerPeer>> waitingGames() {
+    public Map<Game, List<Player>> waitingGames() {
     	return waiting;
     }
     
-    public Map<Game, List<ServerPeer>> runningGames() {
+    public Map<Game, List<Player>> runningGames() {
     	return running;
     }
     
@@ -82,7 +82,7 @@ public class Server extends Thread {
     	}
     }
     
-    public List<ServerPeer> getServerPeers() {
+    public List<Player> getServerPeers() {
     	return serverpeers;
     }
     

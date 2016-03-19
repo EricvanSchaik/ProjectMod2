@@ -11,13 +11,13 @@ import Server.*;
  */
 public class Game extends Thread {
 	
-	private List<Steen> zak;
-	private List<ServerPeer> spelers;
-	private ServerPeer currentPlayer;
-	private Board board;
-	private Map<ServerPeer, Integer> scoreboard;
+	private List<Steen> zak = null;
+	private List<Player> spelers;
+	private Player currentPlayer = null;
+	private Board board = null;
+	private Map<Player, Integer> scoreboard = null;
 	private int gamesize;
-	private boolean isRunning;
+	private boolean isRunning = false;
 	private boolean eindeSpel = false;
 	
 	
@@ -29,7 +29,7 @@ public class Game extends Thread {
 	 * Constructs a new game with existing players, but makes a new board, a new bag with cubes and a new scoreboard (by calling reset()).
 	 * @param spelers: the players participating in the game.
 	 */
-	public Game(List<ServerPeer> spelers, int gamesize, Server server) {
+	public Game(List<Player> spelers, int gamesize) {
 		this.gamesize = gamesize;
 		this.spelers = spelers;
 		this.board = new Board();
@@ -65,13 +65,17 @@ public class Game extends Thread {
 	 * Returns a list of players participating.
 	 * @return the list of players participating.
 	 */
-	public List<ServerPeer> getSpelers() {
+	public List<Player> getSpelers() {
 		return spelers;
 	}
 	
+	/**
+	 * Returns the list of players participating in String-form.
+	 * @return a list of players participating in String-form.
+	 */
 	public String spelersToString() {
 		String spelersToString = " ";
-		for (ServerPeer s: spelers) {
+		for (Player s: spelers) {
 			spelersToString = s.getName() + ", " + spelersToString;
 		}
 		
@@ -82,20 +86,36 @@ public class Game extends Thread {
 	 * Returns the player whose turn it is.
 	 * @return the player who can make a move.
 	 */
-	public ServerPeer getCurrentPlayer() {
+	public Player getCurrentPlayer() {
 		return currentPlayer;
 	}
-
+	
+	/**
+	 * Gives whether the bag of tiles is empty.
+	 * @return true if there are no tiles left in the bag, false if there are.
+	 */
 	public boolean legeZak() {
 		return zak.isEmpty();
 	}
 	
+	/**
+	 * Gives whether this game is running.
+	 * @return
+	 */
 	public boolean isRunning() {
 		return isRunning;
 	}
 	
+	/**
+	 * Returns a String-representation of the scoreboard.
+	 * @return the scoreboard in String-form.
+	 */
 	public String scoreboardToString() {
-		return null;
+		String scoreboardToString = "scoreboard: ";
+		for (Map.Entry<Player, Integer> e: scoreboard.entrySet()) {
+			scoreboardToString = scoreboardToString + e.getKey().getName() + "->" + e.getValue().intValue() + ", ";
+		}
+		return scoreboardToString;
 	}
 	
 	/**
@@ -192,7 +212,7 @@ public class Game extends Thread {
 	 * Returns a Steen from the bag of cubes, and removes it from the bag.
 	 * @return a Steen from the bag of cubes.
 	 */
-	public Steen getSteen() {
+	public Steen takeSteen() {
 		Steen steen = null;
 		if (!zak.isEmpty()){
 			steen = zak.get((int)(Math.random()*zak.size()));
@@ -205,9 +225,9 @@ public class Game extends Thread {
 	 * Starts the game if being called. Gets called by the last player to join. First gives the players random cubes, then keeps giving turns, until one of the players is out of cubes.
 	 */
 	public synchronized void run() {
-		for (ServerPeer p: spelers) {
+		for (Player p: spelers) {
 			for (int i = 0; i < 6; i++) {
-				Steen s = getSteen();
+				Steen s = takeSteen();
 				p.addSteen(s);
 			}
 		}
@@ -239,7 +259,7 @@ public class Game extends Thread {
 	 * @param message: the message to be send.
 	 */
 	public void sendAllPlayers(String message) {
-		for (ServerPeer s: spelers) {
+		for (Player s: spelers) {
 			s.write(message);
 		}
 	}
@@ -248,7 +268,7 @@ public class Game extends Thread {
 	 * Adds a player to the list of players of this game. Gets called if a ServerPeer calls join.
 	 * @param speler: the player who wants to join.
 	 */
-	public void addSpeler(ServerPeer speler) {
+	public void addSpeler(Player speler) {
 		spelers.add(speler);
 		if (spelers.size() == gamesize) {
 			isRunning = true;
@@ -257,15 +277,14 @@ public class Game extends Thread {
 	}
 	
 	/**
-	 * Places a given list of Steen on a given field, calls the similar method in Board and adds points to the current player.
-	 * @param steen: Steen to be placed.
-	 * @param vakje: Field on which the Steen needs to be placed.
-	 * @return true if the Steen has been placed, false if it is not.
+	 * Places a list of tiles with given coordinates on the board.
+	 * @param steentjes, the tiles to be placed (with coordinates).
+	 * @return true if all the tiles are successfully placed, false if not.
 	 */
 	public boolean place(Map<Steen, int[]> steentjes) {
 		boolean placed = board.place(steentjes);
 		if (!placed) {
-			currentPlayer.write("error 0");
+			currentPlayer.write("error 0, couldn't place the tiles");
 		}
 		else {
 			Integer oldScore = scoreboard.get(currentPlayer);
@@ -288,7 +307,7 @@ public class Game extends Thread {
 	
 
 	/**
-	 * The trade method as alternative to the players to the place method. 
+	 * The trade method as alternative for the players to the place method. 
 	 * @param stenen: List of values of type Steen, to be placed in the bag.
 	 * @return List of values of type Steen, to be given back to the player.
 	 */
@@ -311,26 +330,29 @@ public class Game extends Thread {
 	 * When the game ends, this method is being called to inform the players.
 	 */
 	private void endGameMessage() {
-		Set<Map.Entry<ServerPeer, Integer>> entryset = scoreboard.entrySet();
-		Map.Entry<ServerPeer, Integer> highest = null;
-		for (Map.Entry<ServerPeer, Integer> score: entryset) {
+		Set<Map.Entry<Player, Integer>> entryset = scoreboard.entrySet();
+		Map.Entry<Player, Integer> highest = null;
+		for (Map.Entry<Player, Integer> score: entryset) {
 			if (highest.getValue() < score.getValue()) {
 				highest = score;
 			}
 		}
-		ServerPeer winner = highest.getKey();
+		Player winner = highest.getKey();
 		if (winner instanceof ServerPeer) {
 			((ServerPeer) winner).write("Congratulations! You've won!");	
 		}
-		for (ServerPeer s: spelers) {
+		for (Player s: spelers) {
 			if (s instanceof ServerPeer) {
 				((ServerPeer) s).write("You've lost :( The winner is" + winner.getName());
 			}
 		}
 	}
 	
+	/**
+	 * Method to inform all the players every round which stones they have in possession.
+	 */
 	private void sendStenenToAll() {
-		for (ServerPeer s: spelers) {
+		for (Player s: spelers) {
 			s.write("Your stones are " + s.stenenToString());
 		}
 	}
@@ -339,11 +361,11 @@ public class Game extends Thread {
 	 * Resets the game by resetting the scoreboard (given every Player 0 points) and by removing the Stenen owned by the players.
 	 */
 	private void reset() {
-		for (ServerPeer s: spelers) {
+		for (Player s: spelers) {
 			s.reset();	
 		}
-		scoreboard = new HashMap<ServerPeer, Integer>();
-		for (ServerPeer s: spelers) {
+		scoreboard = new HashMap<Player, Integer>();
+		for (Player s: spelers) {
 			scoreboard.put(s, new Integer(0));
 		}
 		eindeSpel = false;
