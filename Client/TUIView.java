@@ -27,12 +27,8 @@ public class TUIView extends View implements Observer {
 				if (strings[0].equals("exit")) {
 					socket.close();
 				}
-				if ((strings[0].equals("join") && !client.isInGame) || (strings[0].equals("hello") && !client.hasLoggedIn) || ((strings[0].equals("place") || strings[0].equals("trade")) && client.isItsTurn)) {
-					System.out.println("Message is being sent...");
+				if ((strings[0].equals("join") && !client.isInGame && (Integer.parseInt(strings[1]) < 5 && Integer.parseInt(strings[1]) > 1 )) || (strings[0].equals("hello") && !client.hasLoggedIn) || (strings[0].equals("place")) || (strings[0].equals("trade"))) {
 					client.write(input);
-					if (strings[0].equals("place") || strings[0].equals("trade")) {
-						client.isItsTurn = false;
-					}
 				}
 			}
 		}
@@ -45,9 +41,6 @@ public class TUIView extends View implements Observer {
 			String[] strings = ((String) arg).split(" ");
 			if (arg.equals("hello from the other side")) {
 				client.hasLoggedIn = true;
-			}
-			if (strings[0].equals("turn")) {
-				client.isItsTurn = true;
 			}
 			
 		}

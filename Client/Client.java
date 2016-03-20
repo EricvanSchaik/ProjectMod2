@@ -18,7 +18,6 @@ public class Client extends Observable implements Runnable {
 	private View view;
 	private String input;
 	private String inputfromserver;
-	public boolean isItsTurn = false;
 	public boolean isInGame = false;
 	public boolean hasLoggedIn = false;
 	public String name;

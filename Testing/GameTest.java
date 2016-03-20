@@ -32,7 +32,6 @@ public class GameTest {
 	public void test1() {
 		assertEquals(game.gameSize(), 4);
 		assertEquals(game.getSpelers(), spelerslijst);
-		assertEquals(game.getCurrentPlayer(), null);
 		assertFalse(game.legeZak());
 		assertFalse(game.isRunning());
 	}

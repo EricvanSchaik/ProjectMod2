@@ -20,17 +20,88 @@ public class ServerPeer implements Runnable, Player {
 	public Game game;
 	private String[] commands = { "join", "hello", "place", "trade" };
 	private List<String> commandslist = Arrays.asList(commands);
-	private boolean joined;
+	public boolean joined;
 	private List<Steen> stenen;
 	private String[] move;
 	private boolean movesucceed = false;
 	
+	//--------------------Constructor--------------------
+	
+	/**
+	 * Constructs a new ServerPeer, bound to a socket 
+	 * @param sockArg
+	 * @param server
+	 */
 	public ServerPeer(Socket sockArg, Server server) {
 		this.sock = sockArg;
 		this.server = server;
 		this.stenen = new ArrayList<Steen>();
 	}
 	
+	//--------------------Queries--------------------
+	
+	/**
+	 * This will return the name of the player/client this serverpeer is attached to.
+	 * @return the name of the player as a String.
+	 */
+	public String getName() {
+		return name;
+	}
+	
+	/**
+	 * A method to determine if a given String can be used as name for the player.
+	 * @param name, the String the client proposes as name.
+	 * @return true if the String is a valid name, false if not.
+	 */
+	public boolean isValidName(String name) {
+		if (commandslist.contains(name) || name.contains(" ") || server.getServerPeers().contains(name)) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+	
+	/**
+	 * This is a complementary class to make it possible within this class to retrieve a tile given a color and shape.
+	 * @param vorm, the shape of the tile.
+	 * @param kleur, the color of the tile.
+	 * @return a reference to the tile of type Steen of this player, with the given color and shape.
+	 * @throws InvalidArgumentException, to be thrown if such a tile is not in the possession of the player.
+	 */
+	private Steen getSteen(int vorm, int kleur) throws InvalidArgumentException {
+		Steen compare = null;
+		Steen result = null;
+		boolean exist = false;
+		compare = new Steen(vorm, kleur);
+		for (Steen s : stenen) {
+			if (s.equals(compare)) {
+				result = s;
+				exist = true;
+			}
+		}
+		if (!exist) {
+			throw new InvalidArgumentException();
+		}
+		return result;
+	}
+	
+	/**
+	 * Gives a String representation of the tiles in possession of the player.
+	 * @return a String describing all the tiles, separated by commas.
+	 */
+	public String stenenToString() {
+		String stenenToString = "";
+		for (Steen s: stenen) {
+			stenenToString = s.toString() + ", " + stenenToString;
+		}
+		return stenenToString;
+	}
+	
+	//--------------------Commands--------------------
+	
+	/**
+	 * The method to be called when this object is created, so that all the input the serverpeer gets from the client can be processed in a concurrent thread.
+	 */
 	public void run() {
 		try {
 			in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
@@ -63,6 +134,11 @@ public class ServerPeer implements Runnable, Player {
 		}
 	}
 	
+	/**
+	 * This method is to be called when a client writes a valid command, and needs to be processed.
+	 * @param command, the command that needs to be processed.
+	 * @param specs, the specifications belonging to the command, specifying the tiles if the command is trading for instance.
+	 */
 	public void executeCommand(String command, String specs) {
 		if (command.equals("hello")) {
 			if (connected) {
@@ -90,7 +166,11 @@ public class ServerPeer implements Runnable, Player {
 		}
 
 	}
-
+	
+	/**
+	 * This method is to be called when a player wants to join a game.
+	 * @param gamesize, the amount of players needed to play the game. Needs to be between 2 and 4.
+	 */
 	public void join(int gamesize) {
 		boolean exists = false;
 		Game posgame = null;
@@ -124,6 +204,9 @@ public class ServerPeer implements Runnable, Player {
 		}
 	}
 
+	/**
+	 * To be called when the client is disconnected.
+	 */
 	public void shutDown() {
 		try {
 			sock.close();
@@ -131,7 +214,10 @@ public class ServerPeer implements Runnable, Player {
 			e.printStackTrace();
 		}
 	}
-
+	
+	/**
+	 * This method will make sure all the messages that need to go to the client are being sent.
+	 */
 	public void write(String message) {
 		try {
 			System.out.println("Sending " + message);
@@ -143,31 +229,35 @@ public class ServerPeer implements Runnable, Player {
 			connected = false;
 		}
 	}
-
-	public String getName() {
-		return name;
-	}
-
+	
+	/**
+	 * This method will determine the name of the player when it first connects with the server.
+	 * @param name, the new name of this player.
+	 */
 	public void setName(String name) {
 		this.name = name;
 	}
 
-	public boolean isValidName(String name) {
-		if (commandslist.contains(name) || name.contains(" ") || server.getServerPeers().contains(name)) {
-			return false;
-		} else {
-			return true;
-		}
-	}
-
+	/**
+	 * This method adds a tile to the collection of tiles of this player.
+	 */
 	public void addSteen(Steen steen) {
 		stenen.add(steen);
 	}
-
+	
+	/**
+	 * This method will remove a tile from the collection of tiles of the player, for instance if he decides to trade the tile or places it on the board.
+	 * @param steen, the tile to be removed.
+	 */
 	public void removeSteen(Steen steen) {
 		stenen.remove(steen);
 	}
-
+	
+	/**
+	 * This method is to be called when a player is in the game, it is its turn and it has written its move to the serverpeer.
+	 * @param command, either place or trade.
+	 * @param specs, specifying the tiles and possibly the coordinates.
+	 */
 	public synchronized void determineMove(String command, String specs) {
 		move = new String[2];
 		move[0] = command;
@@ -179,33 +269,26 @@ public class ServerPeer implements Runnable, Player {
 		}
 		movesucceed = false;
 	}
-
+	
+	/**
+	 * Bounds this player to a game.
+	 * @param game, the game this player needs to be bound to.
+	 */
 	public void setGame(Game game) {
 		this.game = game;
 
 	}
-
+	
+	/**
+	 * This will reset the collection of tiles of the player.
+	 */
 	public void reset() {
 		stenen = new ArrayList<Steen>();
 	}
 
-	public Steen getSteen(int vorm, int kleur) throws InvalidArgumentException {
-		Steen compare = null;
-		Steen result = null;
-		boolean exist = false;
-		compare = new Steen(vorm, kleur);
-		for (Steen s : stenen) {
-			if (s.equals(compare)) {
-				result = s;
-				exist = true;
-			}
-		}
-		if (!exist) {
-			throw new InvalidArgumentException();
-		}
-		return result;
-	}
-
+	/**
+	 * This method tries to carry out the move the client wants to make.
+	 */
 	public void makeMove() {
 		if (game.getCurrentPlayer().equals(this)) {
 			if (move[0].equals("place")) {
@@ -262,15 +345,6 @@ public class ServerPeer implements Runnable, Player {
 		} else {
 			write("error 0, checking if it goes wrong here");
 		}
-	}
-	
-	public String stenenToString() {
-		String stenenToString = "";
-		for (Steen s: stenen) {
-			stenenToString = s.toString() + ", " + stenenToString;
-		}
-		return stenenToString;
-	}
-	
+	}	
 	
 }

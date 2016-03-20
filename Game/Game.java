@@ -32,6 +32,7 @@ public class Game extends Thread {
 	public Game(List<Player> spelers, int gamesize) {
 		this.gamesize = gamesize;
 		this.spelers = spelers;
+		currentPlayer = spelers.get(0);
 		this.board = new Board();
 		this.zak = new ArrayList<Steen>(108);
 		for (int i=0; i<3; i++) {
@@ -235,6 +236,7 @@ public class Game extends Thread {
 		while (!eindeSpel) {
 			sendAllPlayers("turn " + currentPlayer.getName());
 			sendAllPlayers(board.toString());
+			sendAllPlayers(scoreboard.toString());
 			sendStenenToAll();
 			synchronized(currentPlayer) {
 				try {
@@ -344,6 +346,7 @@ public class Game extends Thread {
 		for (Player s: spelers) {
 			if (s instanceof ServerPeer) {
 				((ServerPeer) s).write("You've lost :( The winner is" + winner.getName());
+				((ServerPeer) s).joined = false;
 			}
 		}
 	}
