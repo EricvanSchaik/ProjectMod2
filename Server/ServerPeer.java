@@ -97,6 +97,10 @@ public class ServerPeer implements Runnable, Player {
 		return stenenToString;
 	}
 	
+	/**
+	 * Returns the list of tiles this player has.
+	 * @return the list of tiles this player has.
+	 */
 	public List<Steen> getStenen() {
 		return stenen;
 	}

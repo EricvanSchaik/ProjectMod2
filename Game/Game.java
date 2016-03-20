@@ -28,6 +28,7 @@ public class Game extends Thread {
 	/**
 	 * Constructs a new game with existing players, but makes a new board, a new bag with cubes and a new scoreboard (by calling reset()).
 	 * @param spelers: the players participating in the game.
+	 * @param gamesize: the amount of players needed to start the game.
 	 */
 	public Game(List<Player> spelers, int gamesize) {
 		this.gamesize = gamesize;
@@ -48,6 +49,38 @@ public class Game extends Thread {
 					zak.add(steen);
 				}
 			}
+		}
+		reset();
+	}
+	
+	/**
+	 * Alternative constructor for playing with AI.
+	 * @param spelers, the human players participating.
+	 * @param amountofcomputerplayers, the amount of players to be added to the game.
+	 * @param gamesize, the total amount of players needed to start the game.
+	 */
+	public Game(List<Player> spelers, int amountofcomputerplayers, int gamesize) {
+		this.gamesize = gamesize;
+		this.spelers = spelers;
+		currentPlayer = spelers.get(0);
+		this.board = new Board();
+		this.zak = new ArrayList<Steen>(108);
+		for (int i=0; i<3; i++) {
+			for (int i2=0; i2<6; i2++) {
+				for (int i3=0; i3<6; i3++) {
+					Steen steen = null;
+					try {
+						steen = new Steen(i2,i3);
+					}
+					catch (InvalidArgumentException e) {
+						
+					}
+					zak.add(steen);
+				}
+			}
+		}
+		for (int i = 0; i < amountofcomputerplayers; i++) {
+			spelers.add(new ComputerPlayer(this, "ai" + i));
 		}
 		reset();
 	}
@@ -257,6 +290,7 @@ public class Game extends Thread {
 			e.printStackTrace();
 		}
 	}
+	
 	/**
 	 * Sends a message to all players participating in this game.
 	 * @param message: the message to be send.
@@ -275,6 +309,12 @@ public class Game extends Thread {
 		spelers.add(speler);
 		if (spelers.size() == gamesize) {
 			isRunning = true;
+			for (Player p: spelers) {
+				if (p instanceof ComputerPlayer) {
+					Thread aithread = new Thread((ComputerPlayer)p);
+					aithread.start();
+				}
+			}
 			start();
 		}
 	}

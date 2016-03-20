@@ -80,7 +80,7 @@ public class Board {
 	 * @param y: the y-coordinate of the field.
 	 * @return an int-array representation of a field
 	 */
-	public static int[] getVakje(int x, int y) {
+	public int[] getVakje(int x, int y) {
 		int[] vakje = new int[2];
 		vakje[0] = x;
 		vakje[1] = y;
