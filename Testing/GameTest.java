@@ -44,6 +44,7 @@ public class GameTest {
 		game.addSpeler(p4);
 		assertTrue(game.isRunning());
 		assertTrue(spelerslijst.contains(game.getCurrentPlayer()));
+		System.out.println(game.getBoard().toString());
 		
 	}
 	

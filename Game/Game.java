@@ -25,10 +25,10 @@ public class Game extends Thread {
 	
 	
 	//@ requires spelers.size() >= 1 && spelers.size() <= 4;
+	//@ requires gamesize >=2 && gamesize <= 4;
 	/**
 	 * Constructs a new game with existing players, but makes a new board, a new bag with cubes and a new scoreboard (by calling reset()).
 	 * @param spelers: the players participating in the game.
-	 * @param gamesize: the amount of players needed to start the game.
 	 */
 	public Game(List<Player> spelers, int gamesize) {
 		this.gamesize = gamesize;
@@ -53,53 +53,31 @@ public class Game extends Thread {
 		reset();
 	}
 	
-	/**
-	 * Alternative constructor for playing with AI.
-	 * @param spelers, the human players participating.
-	 * @param amountofcomputerplayers, the amount of players to be added to the game.
-	 * @param gamesize, the total amount of players needed to start the game.
-	 */
-	public Game(List<Player> spelers, int amountofcomputerplayers, int gamesize) {
-		this.gamesize = gamesize;
-		this.spelers = spelers;
-		currentPlayer = spelers.get(0);
-		this.board = new Board();
-		this.zak = new ArrayList<Steen>(108);
-		for (int i=0; i<3; i++) {
-			for (int i2=0; i2<6; i2++) {
-				for (int i3=0; i3<6; i3++) {
-					Steen steen = null;
-					try {
-						steen = new Steen(i2,i3);
-					}
-					catch (InvalidArgumentException e) {
-						
-					}
-					zak.add(steen);
-				}
-			}
-		}
-		for (int i = 0; i < amountofcomputerplayers; i++) {
-			spelers.add(new ComputerPlayer(this, "ai" + i));
-		}
-		reset();
-	}
-	
 	//--------------------Queries--------------------
 	
+	/**
+	 * Returns the board of this game.
+	 * @return the board of this game.
+	 */
+	public Board getBoard(){
+		return board;
+	}
+	
+	// @ensures gameSize() == gamesize
 	/**
 	 * Gives the amount of players needed to start the game.
 	 * @return amount of players to participate.
 	 */
-	public int gameSize() {
+	/*@ pure */ public int gameSize() {
 		return gamesize;
 	}
 	
+	// @ensures getSpelers() == spelers
 	/**
 	 * Returns a list of players participating.
 	 * @return the list of players participating.
 	 */
-	public List<Player> getSpelers() {
+	/*@ pure */ public List<Player> getSpelers() {
 		return spelers;
 	}
 	
@@ -107,7 +85,7 @@ public class Game extends Thread {
 	 * Returns the list of players participating in String-form.
 	 * @return a list of players participating in String-form.
 	 */
-	public String spelersToString() {
+	/*@ pure */ public String spelersToString() {
 		String spelersToString = " ";
 		for (Player s: spelers) {
 			spelersToString = s.getName() + ", " + spelersToString;
@@ -116,11 +94,12 @@ public class Game extends Thread {
 		return spelersToString;
 	}
 
+	// @ensures getCurrentPlayer() == currentPlayer;
 	/**
 	 * Returns the player whose turn it is.
 	 * @return the player who can make a move.
 	 */
-	public Player getCurrentPlayer() {
+	/*@ pure */ public Player getCurrentPlayer() {
 		return currentPlayer;
 	}
 	
@@ -128,23 +107,25 @@ public class Game extends Thread {
 	 * Gives whether the bag of tiles is empty.
 	 * @return true if there are no tiles left in the bag, false if there are.
 	 */
-	public boolean legeZak() {
+	/*@ pure */ public boolean legeZak() {
 		return zak.isEmpty();
 	}
 	
+	// @ensures isRunning() == isRunning
 	/**
 	 * Gives whether this game is running.
 	 * @return
 	 */
-	public boolean isRunning() {
+	/*@ pure */ public boolean isRunning() {
 		return isRunning;
 	}
+	
 	
 	/**
 	 * Returns a String-representation of the scoreboard.
 	 * @return the scoreboard in String-form.
 	 */
-	public String scoreboardToString() {
+	/*@ pure */ public String scoreboardToString() {
 		String scoreboardToString = "scoreboard: ";
 		for (Map.Entry<Player, Integer> e: scoreboard.entrySet()) {
 			scoreboardToString = scoreboardToString + e.getKey().getName() + "->" + e.getValue().intValue() + ", ";
@@ -157,7 +138,7 @@ public class Game extends Thread {
 	 * @param nieuwestenen: the map of cubes and points where they need to be placed.
 	 * @return the points to be added to the current player.
 	 */
-	private int calculatePoints(Map<Steen, int[]> nieuwestenen) {
+	/*@ pure */ private int calculatePoints(Map<Steen, int[]> nieuwestenen) {
 		int score = 0;
 		boolean stop = false;
 		List<Integer> ybonus = new ArrayList<Integer>();
@@ -295,7 +276,7 @@ public class Game extends Thread {
 	 * Sends a message to all players participating in this game.
 	 * @param message: the message to be send.
 	 */
-	public void sendAllPlayers(String message) {
+	/*@ pure */ public void sendAllPlayers(String message) {
 		for (Player s: spelers) {
 			s.write(message);
 		}
@@ -309,12 +290,6 @@ public class Game extends Thread {
 		spelers.add(speler);
 		if (spelers.size() == gamesize) {
 			isRunning = true;
-			for (Player p: spelers) {
-				if (p instanceof ComputerPlayer) {
-					Thread aithread = new Thread((ComputerPlayer)p);
-					aithread.start();
-				}
-			}
 			start();
 		}
 	}
@@ -341,7 +316,7 @@ public class Game extends Thread {
 	 * The method that is to be called by a player when he has no stones left.
 	 * @param speler: the player that calls the method.
 	 */
-	public void noStonesLeft(ServerPeer speler) {
+	public void noStonesLeft(Player speler) {
 		Integer oldScore = scoreboard.get(speler);
 		Integer newScore = new Integer(oldScore.intValue()+6);
 		scoreboard.put(currentPlayer, newScore);
@@ -395,7 +370,7 @@ public class Game extends Thread {
 	/**
 	 * Method to inform all the players every round which stones they have in possession.
 	 */
-	private void sendStenenToAll() {
+	/*@ pure */ private void sendStenenToAll() {
 		for (Player s: spelers) {
 			s.write("Your stones are " + s.stenenToString());
 		}

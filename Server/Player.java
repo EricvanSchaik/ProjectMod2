@@ -1,6 +1,7 @@
 package Server;
 
 import Game.*;
+import java.util.*;
 
 public interface Player {
 	
@@ -11,6 +12,10 @@ public interface Player {
 	public void write(String message);
 	
 	public String stenenToString();
+	
+	public List<Steen> getStenen();
+	
+	public void makeMove();
 	
 	public void reset();
 	
