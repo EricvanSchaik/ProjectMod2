@@ -9,22 +9,22 @@ import java.util.*;
  */
 public class Board {
 	
-	static boolean valid;
-	static boolean kleur;
-	static boolean vorm;
-	static boolean hor;
-	static boolean ver;
-	static boolean hor2;
-	static boolean ver2;
-	static boolean steen1fout;
-	static Steen steeneen = null;
-	static int[] vakeen = new int[2];
-	static int[] vak = new int[2];
-	static Map<Steen, int[]> nieuwcopy = new HashMap<Steen, int[]>();
-	static List<Integer> rij = new ArrayList<Integer>();
-	static boolean nietNeergelegd;
-	static private Map<Steen, int[]> vakjes;
-	static boolean vakbestaat = false;
+	private boolean valid;
+	private boolean kleur;
+	private boolean vorm;
+	private boolean hor;
+	private boolean ver;
+	private boolean hor2;
+	private boolean ver2;
+	private boolean steen1fout;
+	private Steen steeneen = null;
+	private int[] vakeen = new int[2];
+	private int[] vak = new int[2];
+	private Map<Steen, int[]> nieuwcopy = new HashMap<Steen, int[]>();
+	private List<Integer> rij = new ArrayList<Integer>();
+	boolean nietNeergelegd;
+	private Map<Steen, int[]> vakjes;
+	private boolean vakbestaat = false;
 
 	
 	/**
@@ -53,15 +53,15 @@ public class Board {
 		vakjes = new HashMap<Steen, int[]>();
 	}
 	
-	public static Map<Steen, int[]> getVakjes(){
+	public Map<Steen, int[]> getVakjes(){
 		return vakjes;
 	}
+	
 	/**
 	 * This method places a list of tiles with given coordinates and puts them on the board.
 	 * @param steentjes the list of tiles with given coordinates.
 	 * @return true if all the tiles are successfully placed, false if not.
 	 */
-	
 	public boolean place(Map<Steen, int[]> steentjes) {
 		if (isValidMove(steentjes)) {
 			for (Map.Entry<Steen, int[]> s: steentjes.entrySet()) {
@@ -80,7 +80,6 @@ public class Board {
 	 * @param y: the y-coordinate of the field.
 	 * @return an int-array representation of a field
 	 */
-	
 	public static int[] getVakje(int x, int y) {
 		int[] vakje = new int[2];
 		vakje[0] = x;
@@ -93,7 +92,6 @@ public class Board {
 	 * @param vakje: the int-array representation of a field.
 	 * @return the Steen which is on the given field.
 	 */
-	
 	public Steen getSteen(int[] vakje) {
 		Steen steen = null;
 		Set<Map.Entry<Steen, int[]>> entryset = vakjes.entrySet();
@@ -109,12 +107,11 @@ public class Board {
 	 * Gives a copy of this Board.
 	 * @return a copy of the board.
 	 */
-	
 	public Board deepCopy() {
 		return new Board(vakjes);
 	}
 	
-	private static boolean eersteSteen (Steen steen, int[] vakje){
+	private boolean eersteSteen (Steen steen, int[] vakje){
 		steen1fout = false;
 		int x = vakje[0];
 		int y = vakje[1];
@@ -142,7 +139,7 @@ public class Board {
 			else {return true;}
 	}
 	
-	private static boolean herhaling(int i, boolean hor, Steen steen){
+	private boolean herhaling(int i, boolean hor, Steen steen){
 		if (hor){
 			vak[0] = vakeen[0]-i;
 			vak[1] = vakeen[1];
@@ -164,7 +161,7 @@ public class Board {
 		return true;
 	}
 	
-	private static boolean nogNietAanwezig(int j, boolean vorm){
+	private boolean nogNietAanwezig(int j, boolean vorm){
 			nietNeergelegd = true;
 			Map<Steen, int[]> toremove = new HashMap<Steen, int[]>();
 			if(ver2){
@@ -194,7 +191,7 @@ public class Board {
 			return true;
 	}
 	
-	private static boolean kleurofvorm(int[] vak){
+	private boolean kleurofvorm(int[] vak){
 		vakbestaat = false;
 			for (Map.Entry<Steen, int[]> e: nieuwcopy.entrySet()){
 				if (e.getValue()[0]==vak[0] && e.getValue()[1]==vak[1]){
@@ -219,7 +216,7 @@ public class Board {
 	 * @param steentjes the list of tiles to be placed if the method returns true.
 	 * @return true if all the tiles can be placed on the given coordinates, false if not.
 	 */
-	public static boolean isValidMove(Map<Steen, int[]> nieuw) {
+	public boolean isValidMove(Map<Steen, int[]> nieuw) {
 		// variabelen
 				valid = false;
 				kleur = false;
