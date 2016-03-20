@@ -97,6 +97,9 @@ public class ServerPeer implements Runnable, Player {
 		return stenenToString;
 	}
 	
+	public List<Steen> getStenen() {
+		return stenen;
+	}
 	//--------------------Commands--------------------
 	
 	/**
