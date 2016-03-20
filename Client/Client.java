@@ -68,7 +68,7 @@ public class Client extends Observable implements Runnable {
 				notifyObservers(inputfromserver);
 			}
 		} catch (IOException e) {
-			System.out.println(e.getMessage());
+			view.writeToView(e.getMessage());
 		}
 	}
 	

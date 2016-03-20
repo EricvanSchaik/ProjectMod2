@@ -53,14 +53,9 @@ public class Board {
 		vakjes = new HashMap<Steen, int[]>();
 	}
 	
-	/**
-	 * Returns all the tiles on the board in a map.
-	 * @return a map with tiles on the board with corresponding coordinates.
-	 */
-	public Map<Steen, int[]> getVakjes(){
+	public static Map<Steen, int[]> getVakjes(){
 		return vakjes;
 	}
-	
 	/**
 	 * This method places a list of tiles with given coordinates and puts them on the board.
 	 * @param steentjes the list of tiles with given coordinates.
@@ -123,9 +118,10 @@ public class Board {
 		steen1fout = false;
 		int x = vakje[0];
 		int y = vakje[1];
-		if (vakjes.containsValue(getVakje(x, y))){
+		boolean vakjebestaat = false;
 			for (Map.Entry<Steen, int[]> f: vakjes.entrySet()){
-				if (f.getValue()==(getVakje(x, y))){
+				if (f.getValue()[0]==x && f.getValue()[1]==y){
+					vakjebestaat = true;
 					if (f.getKey().getType()[0] == steen.getType()[0] && f.getKey().getType()[1] != steen.getType()[1]){
 						valid = true;
 						vorm = true;
@@ -142,8 +138,8 @@ public class Board {
 					}
 				}
 			}
-		}
-		return false;
+			if (vakjebestaat == false){return false;}
+			else {return true;}
 	}
 	
 	private static boolean herhaling(int i, boolean hor, Steen steen){
@@ -155,19 +151,17 @@ public class Board {
 			vak[0] = vakeen[0];
 			vak[1] = vakeen[1]-i;
 		}
-			if (vakjes.containsValue(vak)){
-				for (Map.Entry<Steen, int[]> e: vakjes.entrySet()){
-					if (e.getValue()==vak){
-						if (vorm == true){
-							if (e.getKey().getType()[1] == steen.getType()[1]){return false;}
-						}
-						else if (kleur == true){
-							if (e.getKey().getType()[0] == steen.getType()[0]){return false;}
-						}
-					}
+		for (Map.Entry<Steen, int[]> e: vakjes.entrySet()){
+			if (e.getValue()[0]==vak[0] && e.getValue()[1]==vak[1]){
+				if (vorm == true){
+					if (e.getKey().getType()[1] == steen.getType()[1]){return false;}
+				}
+				else if (kleur == true){
+					if (e.getKey().getType()[0] == steen.getType()[0]){return false;}
 				}
 			}
-			return true;
+		}
+		return true;
 	}
 	
 	private static boolean nogNietAanwezig(int j, boolean vorm){
@@ -176,7 +170,6 @@ public class Board {
 			if(ver2){
 				vak[0] = vakeen[0];
 				vak[1] = vakeen[1]+j;
-				System.out.println("nog nietaanwezig");
 			}
 			if(hor2){
 				vak[0] = vakeen[0]+j;
@@ -188,9 +181,7 @@ public class Board {
 				for (Map.Entry<Steen, int[]> g: nieuwcopy.entrySet()){
 					if (g.getValue()[0] == vak[0] && g.getValue()[1] == vak[1]){
 						nietNeergelegd = false;
-						System.out.print("niet neergelegd is false gemaakt");
 						if (rij.contains(g.getKey().getType()[m])||g.getKey().getType()[(m+1)%2]!=steeneen.getType()[(m+1)%2]) {
-							System.out.println("iets");
 							return false;
 						}
 						rij.add(new Integer(g.getKey().getType()[m]));
@@ -205,11 +196,9 @@ public class Board {
 	
 	private static boolean kleurofvorm(int[] vak){
 		vakbestaat = false;
-		System.out.println("kleurofvorm");
 			for (Map.Entry<Steen, int[]> e: nieuwcopy.entrySet()){
 				if (e.getValue()[0]==vak[0] && e.getValue()[1]==vak[1]){
 					vakbestaat = true;
-					System.out.println("vakbestaat" + vakbestaat);
 					if (steeneen.getType()[0]==e.getKey().getType()[0]){
 						vorm=true;
 						rij.add(steeneen.getType()[1]);
@@ -222,7 +211,6 @@ public class Board {
 				}
 			}
 		
-		System.out.println(vorm + "" + kleur);
 		return true;
 	}
 	
@@ -243,11 +231,10 @@ public class Board {
 				boolean links = false;
 				boolean onder = false;
 				steeneen = null;
-				int[] vakeen = new int[2];
+				vakeen = new int[2];
 				int[] testvak = new int[2];
 				int[] vak2 = new int[2];
 				int aanwezig = -60;
-				System.out.println("hoi");
 				// hier wordt een copy gemaakt van de binnengekregen map
 				nieuwcopy.putAll(nieuw);
 				for (Map.Entry<Steen, int[]> e: nieuw.entrySet()){
@@ -259,7 +246,6 @@ public class Board {
 					nieuwcopy.remove(e.getKey(), e.getValue());
 					for (Map.Entry<Steen, int[]> f: nieuwcopy.entrySet()){
 						if (e.getValue()[0] == f.getValue()[0] && e.getValue()[1]==f.getValue()[1]){
-							System.out.println("equals werkt niet");
 							return false;
 						}
 					}
@@ -277,19 +263,14 @@ public class Board {
 						}
 						if (steeneen == null){return false;}
 						if (!nieuwcopy.isEmpty()){
-							System.out.println("niet leeg");
 							testvak[0]=0;
 							testvak[1]=1;
 							vak2[0]=0;
 							vak2[1]=-1;
 							for (Map.Entry<Steen, int[]> e: nieuwcopy.entrySet()){
 								if (((e.getValue()[0]==0)&&e.getValue()[1]==1)||((e.getValue()[0]==0)&&e.getValue()[1]==-1)){
-									System.out.println("hoi");
 									ver2=true;
-
-									System.out.println(steeneen);
 									kleurofvorm(testvak);
-									System.out.println(kleurofvorm(testvak));
 									if (vakbestaat==false){
 										kleurofvorm(vak2);
 									}
@@ -314,20 +295,14 @@ public class Board {
 									}
 								}
 							}
-							
-							System.out.println("horver" + hor2 + "" + ver2);
 							if(ver2&&hor2){return false;}
-							System.out.println("kleurvorm" + kleur + "" + vorm);
-							
 							if (ver2){
-								System.out.println("verticaal");
 								for (int i = -6; i<0; i++){
 									testvak[0] = vakeen[0];
 									testvak[1] = vakeen[1]+i;
 									for (Map.Entry<Steen, int[]> e: nieuwcopy.entrySet()){										
 										if (e.getValue()[0]==testvak[0]&&e.getValue()[1]==testvak[1]){
-											System.out.print(i);
-											aanwezig = vakeen[1] + i;
+											aanwezig = i;
 											break;
 										}
 									}
@@ -348,9 +323,10 @@ public class Board {
 								}
 							}
 
-							System.out.println("aanwezig" + " " + aanwezig);
-							if (aanwezig == -60){aanwezig = 0;}
-							System.out.println(aanwezig);
+							if (aanwezig == -60){
+								aanwezig = 0;
+								nietNeergelegd = true;
+							}
 							
 							for (int j = aanwezig; j<0; j++){
 								if (kleur == true){
@@ -361,187 +337,200 @@ public class Board {
 								}
 								if (nietNeergelegd == true){break;}
 							}
-							if (!nietNeergelegd){
-								System.out.print("niet neergelegd");
+							if (nietNeergelegd){
 								for (int j = 1; j<6; j++){
 									if (kleur == true){
-										System.out.println("hoi");
 										if (!nogNietAanwezig(j, !kleur)){return false;}
-										System.out.println(nieuwcopy + "hier");
 									}
 									if (vorm == true){
-										System.out.println("hier kom ik niet");
 										if (!nogNietAanwezig(j, vorm)){return false;}
 									}
 									if (nietNeergelegd == true){break;}
 								}
 							}
-							if (!nieuwcopy.isEmpty()) {System.out.println("nee");return false;}
+							if (!nieuwcopy.isEmpty()) {return false;}
 							else{
-								System.out.println("een steen geplaatst");
+								rij = new ArrayList<Integer>();
 								return true;}
 						}
 				}
 				
-				// hier wordt naar de eerste steen gezocht
-				for (Map.Entry<Steen, int[]> e: nieuw.entrySet()){
-					int x = e.getValue()[0];
-					int y = e.getValue()[1];
-					
-					// ligt de steen links van een al aanwezige steen
-					if (eersteSteen(e.getKey(), getVakje(x-1,y))==true){hor = true; links = true;}
-					
-					// ligt de steen rechts van een al aanwezige steen
-					if (eersteSteen(e.getKey(), getVakje(x+1,y))==true){hor = true;}
-					
-					// ligt de steen onder een al aanwezige steen
-					if (eersteSteen(e.getKey(), getVakje(x,y-1))==true){ver = true; onder = true;}
-					
-					// ligt de steen boven een al aanwezige steen
-					if (eersteSteen(e.getKey(), getVakje(x,y+1))==true){ver = true;}
-					
-					// als de steen niet dezelfde vorm of kleur heeft als de steen die ernaast ligt dan return false
-					if (steen1fout) {return false;}
-					
-					// als er een steen gevonden is die aansluit op een andere steen, stop dan met zoeken naar een andere steen
-					if (valid == true){
-						steeneen = e.getKey();
-						vakeen = e.getValue();
-						nieuwcopy.remove(e);
-						break;
-					}
-				}
-				
-				// als er geen enkele steen aansluit dan return false
-				if (!valid) {
-					return false;
-				}
-				
-				if (nieuwcopy.isEmpty()){
-					return true;
-				}
-				
-				// ga anders naar de rest van de stenen kijken
-				else {
-					// is de reeks stenen een horizontale of verticale rij
-					if (nieuwcopy.containsValue(getVakje(vakeen[0],vakeen[1]-1))||nieuwcopy.containsValue(getVakje(vakeen[0],vakeen[1]+1))){ver2=true;}
-					if (nieuwcopy.containsValue(getVakje(vakeen[0]-1,vakeen[1]))||nieuwcopy.containsValue(getVakje(vakeen[0]+1,vakeen[1]))){hor2=true;}
-					if (ver2 && hor2) {return false;}
-					if (vorm){
-						// de int[] rij staan alle kleuren in die al in de rij aanwezig zijn en dus niet nog eens mogen worden gebruikt
-						rij.add(steeneen.getType()[1]);
-					}
-					if (kleur){
-						rij.add(steeneen.getType()[0]);
+				else{
+					// hier wordt naar de eerste steen gezocht
+					for (Map.Entry<Steen, int[]> e: nieuw.entrySet()){
+						int x = e.getValue()[0];
+						int y = e.getValue()[1];
+						
+						// ligt de steen links van een al aanwezige steen
+						if (eersteSteen(e.getKey(), getVakje(x-1,y))==true){hor = true; links = true;}
+						
+						// ligt de steen rechts van een al aanwezige steen
+						if (eersteSteen(e.getKey(), getVakje(x+1,y))==true){hor = true;}
+						
+						// ligt de steen onder een al aanwezige steen
+						if (eersteSteen(e.getKey(), getVakje(x,y-1))==true){ver = true; onder = true;}
+						
+						// ligt de steen boven een al aanwezige steen
+						if (eersteSteen(e.getKey(), getVakje(x,y+1))==true){ver = true;}
+						
+						// als de steen niet dezelfde vorm of kleur heeft als de steen die ernaast ligt dan return false
+						if (steen1fout) {return false;}
+						// als er een steen gevonden is die aansluit op een andere steen, stop dan met zoeken naar een andere steen
+						if (valid == true){
+							steeneen = e.getKey();
+							vakeen = e.getValue();
+							nieuwcopy.remove(e.getKey(),e.getValue());
+							break;
+						}
 					}
 					
-					// stel de reeks is horizontaal en de eerste steen lag al horizontaal aan een andere steen
-					if (hor2){
-						// als er al een steen links van de originele steen aanwezig is
-						if (hor){
-							if (links){
-								// check of er in de al aanwezige stenen de kleur/vorm voorkomt van de nieuwe steen
-								for (int i = 0; i>-6; i--){
-									if (herhaling(i, hor, steeneen) == false){return false;}
-										for (Map.Entry<Steen, int[]> g: nieuwcopy.entrySet()){
-											if (herhaling(i, hor, g.getKey()) == false){return false;}
-										}
-									 }
-								}
-							else {
-								// check of er in de al aanwezige stenen de kleur/vorm voorkomt van de nieuwe steen
-								for (int i = 0; i<6; i++){
-									if (herhaling(i, hor, steeneen) == false){return false;}
-										for (Map.Entry<Steen, int[]> g: nieuwcopy.entrySet()){
-											if (herhaling(i, hor, g.getKey()) == false){return false;}
-										}
-									 }
-								}
+					// als er geen enkele steen aansluit dan return false
+					if (!valid) {
+						return false;
+					}
+					
+					
+					if (nieuwcopy.isEmpty()){
+						return true;
+					}
+					
+					// ga anders naar de rest van de stenen kijken
+					else {
+						// is de reeks stenen een horizontale of verticale rij
+						for (Map.Entry<Steen, int[]> e: nieuwcopy.entrySet()){
+							if ((e.getValue()[0]==vakeen[0] && e.getValue()[1] == vakeen[1]-1) || (e.getValue()[0]==vakeen[0] && e.getValue()[1] == vakeen[1]+1)){
+								ver2 = true;
 							}
-						else if (ver){
-							if (onder){
-								// check of er in de al aanwezige stenen de kleur/vorm voorkomt van de eerste steen
-								for (int i =0; i>-6; i--){
-									if (herhaling(i, !ver, steeneen) == false){return false;}
-								}
-							}
-							else {
-								//check of er in de al aanwezige stenen de kleur/vorm voorkomt van de eerste steen
-								for (int i =0; i<6; i++){
-									if (herhaling(i, !ver, steeneen) == false){return false;}
-								}	
+							if ((e.getValue()[0]==vakeen[0]-1 && e.getValue()[1] == vakeen[1]) || (e.getValue()[0]==vakeen[0]+1 && e.getValue()[1] == vakeen[1])){
+								hor2 = true;
 							}
 						}
-						// check of er in de nieuwe rij dubbele gegevens voorkomen
-						for (int i = -6; i<0; i++){
-							if (nieuwcopy.containsValue(getVakje(vakeen[0],vakeen[1]+i))){
-								aanwezig = i;
-								break;
+						if (ver2 && hor2) {return false;}						
+						// stel de reeks is horizontaal en de eerste steen lag al horizontaal aan een andere steen
+						if (hor2){
+							// als er al een steen links van de originele steen aanwezig is
+							if (hor){
+								if (vorm){
+									// de int[] rij staan alle kleuren in die al in de rij aanwezig zijn en dus niet nog eens mogen worden gebruikt
+									rij.add(steeneen.getType()[1]);
+								}
+								if (kleur){
+									rij.add(steeneen.getType()[0]);
+								}
+								if (links){
+									// check of er in de al aanwezige stenen de kleur/vorm voorkomt van de nieuwe steen
+									for (int i = 0; i>-6; i--){
+										if (herhaling(i, hor, steeneen) == false){return false;}
+											for (Map.Entry<Steen, int[]> g: nieuwcopy.entrySet()){
+												if (herhaling(i, hor, g.getKey()) == false){return false;}
+											}
+										 }
+									}
+								}
+								else {
+									// check of er in de al aanwezige stenen de kleur/vorm voorkomt van de nieuwe steen
+									for (int i = 0; i<6; i++){
+										if (herhaling(i, hor, steeneen) == false){return false;}
+											for (Map.Entry<Steen, int[]> g: nieuwcopy.entrySet()){
+												if (herhaling(i, hor, g.getKey()) == false){return false;}
+											}
+										 }
+									}
+								}
+							else if (ver){
+								if (onder){
+									// check of er in de al aanwezige stenen de kleur/vorm voorkomt van de eerste steen
+									for (int i =0; i>-6; i--){
+										if (herhaling(i, !ver, steeneen) == false){return false;}
+									}
+								}
+								else {
+									//check of er in de al aanwezige stenen de kleur/vorm voorkomt van de eerste steen
+									for (int i =0; i<6; i++){
+										if (herhaling(i, !ver, steeneen) == false){return false;}
+									}	
+								}
 							}
-						}
-						if (aanwezig == -60){aanwezig =0;}
-
-					if (ver2){	
-						// als er al een steen links van de originele steen aanwezig is
-						if (ver){
-							if (onder == true){
-								// check of er in de al aanwezige stenen de kleur/vorm voorkomt van de nieuwe steen
-								for (int i = 0; i>-6; i--){
-									if (herhaling(i, hor, steeneen) == false){return false;}
-									for (Map.Entry<Steen, int[]> g: nieuwcopy.entrySet()){
-										if (herhaling(i, !ver, g.getKey()) == false){return false;}
+							// check of er in de nieuwe rij dubbele gegevens voorkomen
+							for (int i = -6; i<0; i++){
+								for (Map.Entry<Steen, int[]> e: nieuwcopy.entrySet()){
+									if (e.getValue()[0] == vakeen[0] && e.getValue()[1] == vakeen[1]+i){
+										aanwezig = i;
+										break;
+									}
+								}
+								if (aanwezig != -60) {break;}
+							}
+							if (aanwezig == -60){
+								aanwezig =0;
+								nietNeergelegd = false;
+							}
+						if (ver2){	
+							// als er al een steen links van de originele steen aanwezig is
+							if (ver){
+								if (onder == true){
+									// check of er in de al aanwezige stenen de kleur/vorm voorkomt van de nieuwe steen
+									for (int i = 0; i>-6; i--){
+										if (herhaling(i, hor, steeneen) == false){return false;}
+										for (Map.Entry<Steen, int[]> g: nieuwcopy.entrySet()){
+											if (herhaling(i, !ver, g.getKey()) == false){return false;}
+										}
+									}
+								}
+								else {
+									//check of er in de al aanwezige stenen de kleur/vorm voorkomt van de nieuwe steen
+									for (int i = 0; i<6; i++){
+										if (herhaling(i, hor, steeneen) == false){return false;}
+										for (Map.Entry<Steen, int[]> g: nieuwcopy.entrySet()){
+											if (herhaling(i, !ver, g.getKey()) == false){return false;}
+										}
 									}
 								}
 							}
-							else {
-								//check of er in de al aanwezige stenen de kleur/vorm voorkomt van de nieuwe steen
-								for (int i = 0; i<6; i++){
-									if (herhaling(i, hor, steeneen) == false){return false;}
-									for (Map.Entry<Steen, int[]> g: nieuwcopy.entrySet()){
-										if (herhaling(i, !ver, g.getKey()) == false){return false;}
+							else if (hor){
+								if (links){
+									// check of er in de al aanwezige stenen de kleur/vorm voorkomt van de eerste steen
+									for (int i =0; i>-6; i--){
+										if (herhaling(i, hor, steeneen) == false){return false;}
 									}
 								}
-							}
-						}
-						else if (hor){
-							if (links){
-								// check of er in de al aanwezige stenen de kleur/vorm voorkomt van de eerste steen
-								for (int i =0; i>-6; i--){
-									if (herhaling(i, hor, steeneen) == false){return false;}
+								else{
+									// check of er in de al aanwezige stenen de kleur/vorm voorkomt van de nieuwe steen
+									for (int i =0; i<6; i++){
+										if (herhaling(i, hor, steeneen) == false){return false;}
+									}
 								}
-							}
-							else{
-								// check of er in de al aanwezige stenen de kleur/vorm voorkomt van de nieuwe steen
-								for (int i =0; i<6; i++){
-									if (herhaling(i, hor, steeneen) == false){return false;}
+							}	
+							// check wat de eerste steen in de rij is
+							for (int i = -6; i<0; i++){
+								for (Map.Entry<Steen, int[]> e: nieuwcopy.entrySet()){
+									if (e.getValue()[0] == vakeen[0] && e.getValue()[1] == vakeen[1]+i){
+										aanwezig = i;
+										break;
+									}
 								}
+								if (aanwezig != -60) {break;}
 							}
-						}	
-						// check wat de eerste steen in de rij is
-						for (int i = -6; i<0; i++){
-							vak[0] = vakeen[0];
-							vak[1] = vakeen[1]+i;
-							if (nieuwcopy.containsValue(vak)){
-								aanwezig = i;
-								break;
+							if (aanwezig == -60){
+								aanwezig = 0;
+								nietNeergelegd = false;
 							}
-							if (aanwezig == -60){aanwezig = 0;}
-						}
-				}
-				for (int j = aanwezig; j<0; j++){
-					if (!nogNietAanwezig(j, vorm)){return false;}
-					if (nietNeergelegd == true){break;}
-				}
-				if(!nietNeergelegd){
-					for (int j = 1; j<6; j++){
+					}
+					for (int j = aanwezig; j<0; j++){
 						if (!nogNietAanwezig(j, vorm)){return false;}
 						if (nietNeergelegd == true){break;}
 					}
+					if(!nietNeergelegd){
+						for (int j = 1; j<6; j++){
+							if (!nogNietAanwezig(j, vorm)){return false;}
+							if (nietNeergelegd == true){break;}
+						}
+					}
+					}
 				}
-			}
-			if (!nieuwcopy.isEmpty()) {return false;}
-	}
-	return true;
+				rij = new ArrayList<Integer>();
+				if (!nieuwcopy.isEmpty()) {return false;}
+				else {return true;}
 	}
 	
 	/**

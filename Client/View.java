@@ -9,4 +9,7 @@ public abstract class View implements Observer {
 	
 	public abstract void update(Observable o, Object arg);
 	
+	public void writeToView(String message) {
+		System.out.println(message);
+	}
 }

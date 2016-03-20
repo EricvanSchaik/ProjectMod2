@@ -226,6 +226,7 @@ public class Game extends Thread {
 	 * Starts the game if being called. Gets called by the last player to join. First gives the players random cubes, then keeps giving turns, until one of the players is out of cubes.
 	 */
 	public synchronized void run() {
+		reset();
 		for (Player p: spelers) {
 			for (int i = 0; i < 6; i++) {
 				Steen s = takeSteen();
@@ -236,7 +237,7 @@ public class Game extends Thread {
 		while (!eindeSpel) {
 			sendAllPlayers("turn " + currentPlayer.getName());
 			sendAllPlayers(board.toString());
-			sendAllPlayers(scoreboard.toString());
+			sendAllPlayers(scoreboardToString());
 			sendStenenToAll();
 			synchronized(currentPlayer) {
 				try {
